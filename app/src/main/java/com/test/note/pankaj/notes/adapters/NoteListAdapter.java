@@ -19,7 +19,10 @@ import java.util.List;
  * Created by Pankaj on 03/12/17.
  */
 
-public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteViewHolder> {
+public class NoteListAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+    private final static int VIEW_EMPTY = 1;
+    private final static int VIEW_DATA = 2;
 
     private Context context;
     private LayoutInflater layoutInflater;
@@ -39,21 +42,30 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
     }
 
     @Override
-    public NoteListAdapter.NoteViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        return new NoteViewHolder(layoutInflater.inflate(R.layout.row_note_item_layout, parent,
-                false));
+    public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        if (viewType == VIEW_EMPTY) {
+            return new EmptyViewHolder(layoutInflater.inflate(R.layout.row_empty_view_layout, parent,
+                    false));
+        } else {
+            return new NoteViewHolder(layoutInflater.inflate(R.layout.row_note_item_layout, parent,
+                    false));
+        }
     }
 
     @Override
-    public void onBindViewHolder(NoteViewHolder holder, int position) {
+    public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+        if (holder instanceof EmptyViewHolder) {
+            return;
+        }
+        NoteViewHolder viewHolder = (NoteViewHolder) holder;
         Note obj = list.get(position);
         if (obj == null) return;
-        holder.tvTitle.setText(obj.getTitle());
-        holder.tvDate.setText(Utils.getFormattedDateTime(obj.getTimeStamp()));
-        holder.tvnote.setText(obj.getNote());
+        viewHolder.tvTitle.setText(obj.getTitle());
+        viewHolder.tvDate.setText(Utils.getFormattedDateTime(obj.getTimeStamp()));
+        viewHolder.tvnote.setText(obj.getNote());
 
-        holder.constraintLayout.setTag(obj);
-        holder.constraintLayout.setOnClickListener(onClickListener);
+        viewHolder.constraintLayout.setTag(obj);
+        viewHolder.constraintLayout.setOnClickListener(onClickListener);
     }
 
     private View.OnClickListener onClickListener = new View.OnClickListener() {
@@ -67,8 +79,14 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
 
     @Override
     public int getItemCount() {
-        if (list == null) return 0;
+        if (list == null || list.size() <= 0) return 1;
         else return list.size();
+    }
+
+    @Override
+    public int getItemViewType(int position) {
+        if (list == null || list.size() <= 0) return VIEW_EMPTY;
+        return VIEW_DATA;
     }
 
     static class NoteViewHolder extends RecyclerView.ViewHolder {
@@ -82,6 +100,13 @@ public class NoteListAdapter extends RecyclerView.Adapter<NoteListAdapter.NoteVi
             tvTitle = itemView.findViewById(R.id.tv_title);
             tvDate = itemView.findViewById(R.id.tv_date);
             tvnote = itemView.findViewById(R.id.tv_note);
+        }
+    }
+
+    static class EmptyViewHolder extends RecyclerView.ViewHolder {
+
+        EmptyViewHolder(View itemView) {
+            super(itemView);
         }
     }
 }
